@@ -1,0 +1,127 @@
+<!--# Action Usual #-->
+
+<script type="text/javascript">
+    var currentId=0;
+    function playMixCloudItem(id,title) {
+        currentId=id;
+        var url="?mode=play";
+        url+='&item_id='+encodeURIComponent(id);
+        url+='&item_title='+encodeURIComponent(title);
+        window.location.href=url;
+        return false;
+    }
+
+    function playMixCloudItemNow(id,title) {
+
+        currentId=id;
+        var url="?";
+        url+='mode=playnow&item_id='+encodeURIComponent(id);
+        $('#now_play_title').html(title);
+        $('#now_play_id').html(encodeURIComponent(id));
+        $('#now_play_add').html('');
+        $('#now_play_result').html();
+        $('#now_play').show();
+
+        $.ajax({
+            url: url
+        }).done(function(data) {
+            $('#now_play_result').html(data);
+        });
+
+
+        return false;
+    }
+
+    function addToFavoritesItem() {
+        var url="?";
+        url+='mode=favorites&item_id='+currentId+'&item_title='+encodeURIComponent($('#now_play_title').html());
+
+        $.ajax({
+            url: url
+        }).done(function(data) {
+            $('#now_play_add').html(' '+data);
+        });
+        return false;
+    }
+</script>
+
+
+
+<div>
+    <ul class="nav nav-tabs">
+        <li [#if MODE==""#] class="active"[#endif#]><a href="?"><i class="glyphicon glyphicon-home"></i> <#LANG_HOME#></a></li>
+        <!--#
+        <li [#if MODE=="top"#] class="active"[#endif#]><a href="?mode=top"><i class="glyphicon glyphicon-tower"></i> Trending</a></li>
+        #-->
+        <li [#if MODE=="categories"#] class="active"[#endif#]><a href="?mode=categories"><i class="glyphicon glyphicon-music"></i> <#LANG_CATEGORIES#></a></li>
+        <li [#if MODE=="search"#] class="active"[#endif#]><a href="?mode=search"><i class="glyphicon glyphicon-search"></i> <#LANG_SEARCH#></a></li>
+        <li [#if MODE=="play"#] class="active"[#endif#]><a href="?mode=play"><i class="glyphicon glyphicon-play"></i> Playback</a></li>
+    </ul>
+</div>
+
+<div id="now_play" style="display:none">
+    <h1 id="now_play_title"></h1>
+    <span id="now_play_result"></span>
+    [<a href="#" onClick="return addToFavoritesItem();">Add to favorites</a><span id="now_play_add"></span>]
+    [<a href="#" onClick="$('#now_play_code').toggle();return false;"><#LANG_CODE#></a>]
+    <div id="now_play_code" style="display:none">&nbsp;<pre>getURL(BASE_URL.ROOTHTML.'apps/mixcloud.html?mode=playnow&terminal=MAIN&item_id=<span id="now_play_id"></span>',0);</pre></div>
+</div>
+&nbsp;
+
+
+[#if MODE=="play"#]
+[#if TITLE!=""#]
+<h1>[#TITLE#]</h1>
+[#endif TITLE#]
+
+[#if STREAM_URL!=""#]
+[#else STREAM_URL#]
+<p>Stream is not selected.</p>
+[#endif STREAM_URL#]
+[#module name="app_player" action="" play="<#STREAM_URL#>" #]
+    [#endif MODE#]
+
+    [#if MODE==""#]
+    [#if ITEMS#]
+    [#inc items.html#]
+    [#else#]
+    <p>No items in favorites.</p>
+    [#endif ITEMS#]
+    [#endif#]
+
+    [#if MODE=="search"#]
+    <form action="?" class="form-inline" method="get">
+        <div class="form-group">
+            <input type="text" name="search" value="<#SEARCH#>" class="form-control">
+            <input type="submit" value="<#LANG_SEARCH#>" class="btn btn-default">
+        </div>
+        <input type="hidden" name="mode" value="<#MODE#>">
+    </form>
+    [#if ITEMS#]
+    [#inc items.html#]
+    [#endif ITEMS#]
+    [#endif#]
+
+    [#if MODE=="top"#]
+    [#inc items.html#]
+    [#endif#]
+
+    [#if MODE=="categories"#]
+
+    [#if PARENT_ID!=""#]<p><a href="?mode=categories" onClick="history.go(-1);">&lt;&lt;&lt; <#LANG_BACK#></a></p>[#endif PARENT_ID#]
+
+    [#if TITLE!=""#]
+
+    <p><a href="?mode=categories">&lt; <#LANG_BACK#></a></p>
+
+    <h1>[#TITLE#]</h1>
+    [#endif TITLE#]
+
+    [#if CATEGORY!=""#]
+    [#inc items.html#]
+    [#else CATEGORY#]
+    [#begin CATEGORIES#]
+    <a href="?mode=categories&key=[#key_URL#]&title=[#name_URL#]"><h2>[#name#]</h2></a>
+    [#end CATEGORIES#]
+    [#endif#]
+    [#endif CATEGORY#]

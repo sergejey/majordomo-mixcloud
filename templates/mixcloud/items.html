@@ -1,0 +1,15 @@
+<table class="table table-stripped">
+[#begin ITEMS#]
+<tr>
+    <td>[#if picture!=""#]<img src="[#picture#]">[#else#]&nbsp;[#endif#]</td>
+    <td>
+       <b>[#name#]</b>
+        <br/>
+        <a href="#" onClick="return playMixCloudItemNow('[#key#]','[#name_JS#]');" class="btn btn-default btn-sm"><i class="glyphicon glyphicon-play"></i> PLAY</a>
+        <a href="#" onClick="return playMixCloudItem('[#key#]','[#name_JS#]');" class="btn btn-default btn-sm"><i class="glyphicon glyphicon-play"></i> ...</a>
+        [#if FAVORITE="1"#]
+        <a href="?mode=favorites&remove=1&id=[#ID#]" class="btn btn-default btn-sm" onClick="return confirm('<#LANG_ARE_YOU_SURE#>');"><#LANG_DELETE#></a>
+        [#endif#]
+    </td></tr>
+[#end ITEMS#]
+</table>
