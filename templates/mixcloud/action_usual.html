@@ -50,9 +50,7 @@
 <div>
     <ul class="nav nav-tabs">
         <li [#if MODE==""#] class="active"[#endif#]><a href="?"><i class="glyphicon glyphicon-home"></i> <#LANG_HOME#></a></li>
-        <!--#
-        <li [#if MODE=="top"#] class="active"[#endif#]><a href="?mode=top"><i class="glyphicon glyphicon-tower"></i> Trending</a></li>
-        #-->
+        <li [#if MODE=="top"#] class="active"[#endif#]><a href="?mode=top"><i class="glyphicon glyphicon-tower"></i> Hot</a></li>
         <li [#if MODE=="categories"#] class="active"[#endif#]><a href="?mode=categories"><i class="glyphicon glyphicon-music"></i> <#LANG_CATEGORIES#></a></li>
         <li [#if MODE=="search"#] class="active"[#endif#]><a href="?mode=search"><i class="glyphicon glyphicon-search"></i> <#LANG_SEARCH#></a></li>
         <li [#if MODE=="play"#] class="active"[#endif#]><a href="?mode=play"><i class="glyphicon glyphicon-play"></i> Playback</a></li>

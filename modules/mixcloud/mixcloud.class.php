@@ -171,7 +171,7 @@ function usual(&$out) {
     }
 
     if ($this->mode=='top') {
-        //$this->topStations($out);
+        $this->topMixes($out);
     }
     if ($this->mode=='categories') {
         $this->categories($out);
@@ -198,6 +198,9 @@ function usual(&$out) {
 
         if ($item_id) {
             $stream_url=$this->getStreamURL($item_id);
+            if ($stream_url) {
+             $this->runBackgroundProcess();
+            }
         }
         $out['STREAM_URL']=$stream_url;
         $out['ITEM_ID']=$item_id;
@@ -240,6 +243,8 @@ function usual(&$out) {
 
         if ($stream_url!='') {
 
+            $this->runBackgroundProcess();
+
             if (!$terminal) {
                 $terminal='HOME';
             }
@@ -255,6 +260,8 @@ function usual(&$out) {
     }
 
     function getStreamURL($item_id) {
+
+    //curl 'https://www.mixcloud.com/chained/listen/KrucialNoiseRadio/krucial-noise-radio-show-051-krucial-chill-mix-w-mr-brothers/' -H 'Host: www.mixcloud.com' -H 'User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64; rv:49.0) Gecko/20100101 Firefox/49.0' -H 'Accept: */*' -H 'Accept-Language: en,en-US;q=0.7,ru;q=0.3' -H 'Accept-Encoding: gzip, deflate, br' -H 'X-NewRelic-ID: XA8EVFFADwYCXFBT' -H 'X-JS-Version: 11' -H 'X-Requested-With: XMLHttpRequest' -H 'Referer: https://www.mixcloud.com/' -H 'Cookie: __cfduid=d790bb090d028717d06aa5e70935a27d11476092596; csrftoken=uUfaz0bRt7HyRQWFDANLQscMsib1FEYf; s=mlfjhhxxfg4lqkgslbhxwr6uqvknjh0n; _ga=GA1.2.306691935.1476092602; __gads=ID=bee374fd831641b8:T=1476092615:S=ALNI_MbUEExhZua_o7ZiM8J7WMYNwTyugw; user_segment=Prospect; _gat=1' -H 'Connection: keep-alive'
 
         $mixcloud_url='https://www.mixcloud.com/';
         $url=$mixcloud_url.preg_replace('/^\//','',$item_id);
@@ -274,7 +281,7 @@ function usual(&$out) {
         curl_setopt($ch, CURLOPT_TIMEOUT, 15);
         curl_setopt($ch, CURLOPT_HEADER, 1);
 
-        $tmpfname = ROOT . 'cached/cookie.txt';
+        $tmpfname = ROOT . 'cached/cookie_mixcloud.txt';
         curl_setopt($ch, CURLOPT_COOKIEJAR, $tmpfname);
         curl_setopt($ch, CURLOPT_COOKIEFILE, $tmpfname);
 
@@ -283,6 +290,7 @@ function usual(&$out) {
         if (preg_match('/m-p-ref="cloudcast_page" m-play-info="(.*)" m-preview=/',$result,$m)) {
             $playInfo=base64_decode($m[1]);
             $magicString=base64_decode('cGxlYXNlZG9udGRvd25sb2Fkb3VybXVzaWN0aGVhcnRpc3Rzd29udGdldHBhaWQ=');
+            //echo $magicString;
             $magicString.=$magicString;
             $magicString.=$magicString;
 
@@ -306,9 +314,16 @@ function usual(&$out) {
             }
             $result=json_decode($res,true);
             if (is_array($result)) {
+                //print_r($result);
                 $stream_id=$result['id'];
                 $ping_session_id=$result['html5_ping_session_id']; // TODO: should we ping this periodically?
                 $stream_url=$result['stream_url'];
+
+                $url='http://api.mixcloud.com'.$item_id;
+                echo "$url<br/>";
+                $data=$this->get_cloudcasts($url);
+                print_r($data);
+
                 return $stream_url;
             }
         }
@@ -379,9 +394,18 @@ function usual(&$out) {
             $type='cloudcast';
             $items=$this->get_cloudcasts($url,array('q'=>$search,'type'=>$type,'limit'=>$this->limit,'offset'=>($page*$this->limit)));
             $out['ITEMS']=$items;
-
         }
     }
+
+    function topMixes(&$out) {
+        global $page;
+        $page=(int)$page;
+        $out['SEARCH']=htmlspecialchars($search);
+        $url='http://api.mixcloud.com/popular/hot/';
+        $items=$this->get_cloudcasts($url,array('limit'=>$this->limit,'offset'=>($page*$this->limit)));
+        $out['ITEMS']=$items;
+    }
+
 
     function get_cloudcasts($url,$params=0) {
         $url.='?';
@@ -407,6 +431,65 @@ function usual(&$out) {
         }
 
         return 0;
+    }
+
+
+
+    function runKeepAliveCall() {
+
+      $timer_name='mixcloud_timer';
+
+
+       $urls=array(
+        'https://www.mixcloud.com/notifications/general/',
+        'https://www.mixcloud.com/notifications/upload/'
+       );
+
+       //        
+
+       
+      foreach($urls as $url) {
+
+        //DebMes("Sending MixCloud notification call to '$url'");
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, array('Host: www.mixcloud.com'));
+        curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.27 Safari/537.36');
+        curl_setopt($ch, CURLOPT_REFERER,'https://www.mixcloud.com');
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 15);
+        curl_setopt($ch, CURLOPT_HEADER, 1);
+
+        $tmpfname = ROOT . 'cached/cookie_mixcloud.txt';
+        curl_setopt($ch, CURLOPT_COOKIEJAR, $tmpfname);
+        curl_setopt($ch, CURLOPT_COOKIEFILE, $tmpfname);
+        $result = curl_exec($ch);
+
+      }
+
+
+      $code='';
+      $timeout=3*60;
+
+      $code.='include_once(DIR_MODULES.\'mixcloud/mixcloud.class.php\');';
+      $code.='$mx_object=new mixcloud();';
+      $code.='$mx_object->runKeepAliveCall();';
+      $code.='unset($mx_object);';
+
+      setTimeOut($timer_name, $code, $timeout);
+
+      
+    }
+
+     
+    function runBackgroundProcess() {
+      $timer_name='mixcloud_timer';
+      $this->runKeepAliveCall();
+      setTimeout($timer_name.'_over', 'clearTimeout(\''.$timer_name.'\');', 3*60*60);
     }
 
     function api_call($url,$timeout=0) {
