@@ -181,7 +181,7 @@ function usual(&$out) {
     }
 
     if ($this->mode=='') {
-        $stations=SQLSelect("SELECT ITEM_ID as `key`, TITLE as `name`, '1' as FAVORITE FROM mixcloud_favorites ORDER BY mixcloud_favorites.ID DESC");
+        $stations=SQLSelect("SELECT ID, ITEM_ID as `key`, TITLE as `name`, '1' as FAVORITE FROM mixcloud_favorites ORDER BY mixcloud_favorites.ID DESC");
         if ($stations[0]['key']) {
             $total = count($stations);
             for ($i = 0; $i < $total; $i++) {
@@ -215,7 +215,7 @@ function usual(&$out) {
         global $remove;
 
         if ($remove && $id) {
-            SQLExec("DELETE FROM mixcloud_favorites WHERE  ITEM_ID = '".DBSafe($item_id)."'");
+            SQLExec("DELETE FROM mixcloud_favorites WHERE ID = '".DBSafe($id)."'");
             $this->redirect("?");
         }
         if ($item_id) {
@@ -318,11 +318,12 @@ function usual(&$out) {
                 $stream_id=$result['id'];
                 $ping_session_id=$result['html5_ping_session_id']; // TODO: should we ping this periodically?
                 $stream_url=$result['stream_url'];
+                $stream_url=str_replace('https://', 'http://', $stream_url);
 
-                $url='http://api.mixcloud.com'.$item_id;
-                echo "$url<br/>";
-                $data=$this->get_cloudcasts($url);
-                print_r($data);
+                //$url='http://api.mixcloud.com'.$item_id;
+                //echo "$url<br/>";
+                //$data=$this->get_cloudcasts($url);
+                //print_r($data);
 
                 return $stream_url;
             }
@@ -447,10 +448,11 @@ function usual(&$out) {
 
        //        
 
+
+      DebMes("MixCloud notification call");
        
       foreach($urls as $url) {
 
-        //DebMes("Sending MixCloud notification call to '$url'");
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $url);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array('Host: www.mixcloud.com'));
@@ -487,9 +489,11 @@ function usual(&$out) {
 
      
     function runBackgroundProcess() {
+      /*
       $timer_name='mixcloud_timer';
       $this->runKeepAliveCall();
       setTimeout($timer_name.'_over', 'clearTimeout(\''.$timer_name.'\');', 3*60*60);
+      */
     }
 
     function api_call($url,$timeout=0) {
