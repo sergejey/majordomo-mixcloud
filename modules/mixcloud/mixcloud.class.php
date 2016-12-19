@@ -120,6 +120,9 @@ function admin(&$out) {
  $out['API_KEY']=$this->config['API_KEY'];
  $out['API_USERNAME']=$this->config['API_USERNAME'];
  $out['API_PASSWORD']=$this->config['API_PASSWORD'];
+
+ $out['API_TERMINAL']=$this->config['API_TERMINAL'];
+
  if ($this->view_mode=='update_settings') {
    global $api_url;
    $this->config['API_URL']=$api_url;
@@ -129,9 +132,16 @@ function admin(&$out) {
    $this->config['API_USERNAME']=$api_username;
    global $api_password;
    $this->config['API_PASSWORD']=$api_password;
+
+   global $api_terminal;
+   $this->config['API_TERMINAL']=$api_terminal;
+
    $this->saveConfig();
    $this->redirect("?");
  }
+
+ $out['TERMINALS']=SQLSelect("SELECT NAME, TITLE FROM terminals ORDER BY TITLE");
+
  if (isset($this->data_source) && !$_GET['data_source'] && !$_POST['data_source']) {
   $out['SET_DATASOURCE']=1;
  }
@@ -244,6 +254,10 @@ function usual(&$out) {
         if ($stream_url!='') {
 
             $this->runBackgroundProcess();
+
+            if (!$terminal) {
+             $terminal=$this->config['API_TERMINAL'];
+            }
 
             if (!$terminal) {
                 $terminal='HOME';

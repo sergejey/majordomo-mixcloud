@@ -10,10 +10,26 @@
 <div class="form-group">
  <label class="control-label"[#if ERR_API_KEY#] style="color:red;font-weight:bold"[#endif#]>
  API KEY:
- (*)
+ (optional)
  </label>
  <div class="controls"><input type="text" name="api_key" value="[#API_KEY#]" class="input"></div>
 </div>
+
+<div class="form-group">
+ <label class="control-label">
+ Default terminal:
+ (optional)
+ </label>
+ <div class="controls">
+ <select name="api_terminal">
+  <option value="">
+  [#begin TERMINALS#]
+  <option value="[#NAME#]"[#if NAME="<#API_TERMINAL#>"#] selected[#endif#]>[#TITLE#]
+  [#end TERMINALS#]
+ </select>
+ </div>
+</div>
+
 <div class="form-actions">
 <button type="submit" name="subm" value="Submit" class="btn btn-primary"><#LANG_UPDATE#></button>
 <input type="hidden" name="view_mode" value="update_settings">
