@@ -580,7 +580,7 @@ function usual(&$out) {
 *
 * @access private
 */
- function dbInstall() {
+ function dbInstall($data='') {
 /*
 mixcloud_favorites - 
 */
